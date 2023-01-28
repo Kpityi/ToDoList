@@ -32,6 +32,7 @@ BTN.addEventListener('click', function(event){
   }
   
   check();
+  deleteItem();
   
 })
 
@@ -55,14 +56,29 @@ function check(){
   }  
 }
 
+function deleteItem() {
+  let element = document.getElementsByClassName('element')
+  let item = document.getElementsByClassName('delete-item');
+  for (let i = 0; i < item.length; i++) {
+    item[i].onclick= function(){
+      element[i].remove();
+      localStorage.removeItem('MyToDoList');
+      elements=[]
+      SaveLocalStorage();
+      location.reload();
+    }
+  }  
+}
+
 function Render(){
   listTemplate = 
     `<p class="element">
-    <span>${number}. </span> 
-    <span class="listElement" >${listElement}</span>
-    <input type="checkbox" name="finished" class="finished">
-   </p> `
-  
+      <span>${number}. </span> 
+      <span class="listElement" >${listElement}</span>
+      <input type="checkbox" name="finished" class="finished">
+      </p>
+      <button class="delete-item">X</button>`;
+    
     ToDoList.innerHTML += listTemplate;
     newListElement.value="";
     number ++;  
@@ -83,5 +99,6 @@ function LoadMyToDoList(){
     listElement = SavedList[i];
     Render();
     check();
+    deleteItem()
   }
 }

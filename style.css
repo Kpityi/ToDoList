@@ -27,13 +27,12 @@
 .element{
   display: flex;
   justify-content: space-between;
-  margin: 5px 25px;
+  margin: 5px 70px 5px 25px;
   font-size: 30px;
   border: 1px solid blue
 }
 .finished{
   width: 20px;
- 
 }
 .done{
   font-style: italic;
@@ -44,4 +43,15 @@
 p:hover, .finished:hover{
   background-color: rgba(0, 0, 0, .2);
   cursor: pointer;
+}
+.delete-item {
+   float: right; 
+   margin: -41px 10px; 
+  height: 35px;
+  width: 35px; 
+  border-radius: 5px;
+  border: 1px solid black;
+}
+button {
+  box-shadow: 4px 4px 10px black;
 }
