@@ -1,4 +1,4 @@
-.container{
+.container {
   border: 1px solid black;
   width: 500px;
   background-color: aliceblue;
@@ -6,7 +6,8 @@
   margin: 50px auto;
   text-align: center;
 }
-#Add{
+
+#input {
   width: 300px;
   height: 30px;
   background-color: lightyellow;
@@ -14,34 +15,39 @@
   text-align: center;
   margin-bottom: 25px;
 }
-#BTN{
+
+#add-button {
   margin-left: 20px;
   height: 32px;
   font-size: 25px;
 }
-#clear{
+
+#clear-button {
   margin: 20px;
   height: 32px;
   font-size: 25px;
 }
-.element{
+
+.row {
   display: flex;
   justify-content: space-between;
   margin: 5px 25px;
   font-size: 30px;
   border: 1px solid blue
 }
-.finished{
+
+.finished-checkbox {
   width: 20px;
- 
 }
-.done{
+
+.done {
   font-style: italic;
   text-decoration: line-through blue;
   color: gray;
   opacity: 40%;
 }
-p:hover, .finished:hover{
+
+p:hover, .finished-checkbox:hover {
   background-color: rgba(0, 0, 0, .2);
   cursor: pointer;
 }

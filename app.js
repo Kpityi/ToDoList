@@ -1,87 +1,100 @@
-let BTN = document.getElementById("BTN");
-let clearBTN = document.getElementById("clear");
-let newListElement = document.getElementById("Add")
-let ToDoList = document.getElementById("ToDoList");
-let checkbox=document.getElementsByClassName('finished');
-let element = document.getElementsByClassName("element");
-const SavedList = JSON.parse(localStorage.getItem('MyToDoList'));
-let number = 1;
-let elementIndex=0;
-let elements= [];
+const addButton = document.getElementById("add-button");
+const clearButton = document.getElementById("clear-button");
+const inputField = document.getElementById("input");
+const toDoList = document.getElementById("to-do-list");
+
+let rowNumber = 1;
+let elements = [];
 let listElement = "";
-let listTemplate = "";
 
-if (localStorage.length > 0) {
-  LoadMyToDoList();
-}
-
-
-BTN.addEventListener('click', function(event){
+addButton.addEventListener('click', function (event) {
   event.preventDefault();
-   elements= [];
-  
-  listElement = newListElement.value;
-  if(listElement.match(/^[0-9a-zA-ZáéőúűóöüíÉÁŐÚŰÓÜÖÍ" ",.-]{1,25}$/)){
-    
-    Render();
-    SaveLocalStorage();
+  elements = [];
+
+  listElement = inputField.value;
+
+  if (listElement.match(/^[0-9a-zA-ZáéőúűóöüíÉÁŐÚŰÓÜÖÍ" ",.-]{1,25}$/)) {
+
+    render(rowNumber - 1);
+    saveLocalStorage();
 
   }
-  else{
+  else {
     alert("illegális karakter");
   }
-  
-  check();
-  
 })
 
-
-
-clearBTN.addEventListener('click', function(){
-  ToDoList.innerHTML ="";
-  number = 1;
-  elementIndex=0;
+clearButton.addEventListener('click', function () {
+  toDoList.innerHTML = "";
+  rowNumber = 1;
   localStorage.clear();
-  elements=[];
-  
+  toDoItems = [];
+
 })
 
-function check(){
-  checkbox=document.getElementsByClassName('finished');
-  for (let i = 0; i < checkbox.length; i++) {
-    checkbox[i].onclick= function(){
-      this.parentNode.classList.toggle("done");
-    }
-  }  
-}
+const setCheckbox = (i) => (event) => {
+  const isChecked = event.target.checked;
 
-function Render(){
-  listTemplate = 
-    `<p class="element">
-    <span>${number}. </span> 
-    <span class="listElement" >${listElement}</span>
-    <input type="checkbox" name="finished" class="finished">
-   </p> `
-  
-    ToDoList.innerHTML += listTemplate;
-    newListElement.value="";
-    number ++;  
-};
+  event.target.parentNode.classList.toggle("done");
 
-function SaveLocalStorage(){
-  elementIndex = document.querySelectorAll(".listElement").length;
-  for (let i = 0; i < elementIndex; i++) {
-    let elementValue = document.querySelectorAll(".listElement")[i].innerText;
-    elements.push(elementValue);
-    localStorage.setItem('MyToDoList', JSON.stringify(elements));
-    }
-    
-};
+  const toDoList = JSON.parse(localStorage.getItem('myToDoList')) || [];
 
-function LoadMyToDoList(){
-  for (let i = 0; i < SavedList.length; i++) {
-    listElement = SavedList[i];
-    Render();
-    check();
+  if (toDoList.length > i) {
+    toDoList[i].isChecked = isChecked;
+    localStorage.setItem('myToDoList', JSON.stringify(toDoList));
   }
 }
+
+function render(i, savedList=null) {
+  const row = document.createElement('p');
+  row.classList.add('row');
+  row.innerHTML = `
+    <span>${rowNumber}. </span> 
+    <span class="list-element" >${savedList?.label || listElement}</span>
+  `;
+  if (savedList?.isChecked) {
+    row.classList.add('done');
+  }
+
+  const checkbox = document.createElement('input');
+  checkbox.setAttribute('type', 'checkbox');
+  checkbox.setAttribute('name', 'finished');
+  checkbox.setAttribute('meta-index', i);
+  checkbox.classList.add('finished-checkbox');
+  checkbox.checked = savedList?.isChecked || false;
+  checkbox.onclick = setCheckbox(i);
+
+  row.appendChild(checkbox);
+  toDoList.appendChild(row);
+
+  inputField.value = "";
+  rowNumber++;
+};
+
+function saveLocalStorage() {
+  const rowList = document.querySelectorAll(".row");
+
+  for (const row of rowList) {
+    const valueContainer = row.querySelector('.list-element');
+    const checkbox = row.querySelector('.finished-checkbox');
+
+    const elementValue = {
+      label: valueContainer.innerText,
+      isChecked: checkbox.checked,
+    };
+
+    elements.push(elementValue);
+    localStorage.setItem('myToDoList', JSON.stringify(elements));
+  }
+};
+
+function loadMyToDoList() {
+  const savedList = JSON.parse(localStorage.getItem('myToDoList')) || [];
+
+  for (let i = 0; i < savedList.length; i++) {
+    listElement = savedList[i];
+    render(i, savedList[i]);
+  }
+}
+
+loadMyToDoList();
