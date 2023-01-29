@@ -1,100 +1,92 @@
-const addButton = document.getElementById("add-button");
-const clearButton = document.getElementById("clear-button");
-const inputField = document.getElementById("input");
-const toDoList = document.getElementById("to-do-list");
+import { STRINGS } from './utils/constants.js';
+import { ATTRIBUTES, CLASSES, ELEMENTS, IDS, EVENTS } from './utils/htmlConstants.js';
+import { validateInput, findHighestId } from './utils/helpers.js';
+import RowData from './classes/rowData.js';
+import {
+  getLocalStorage,
+  setLocalStorage,
+  removeFromLocalStorage
+} from './utils/storageHandlers.js';
+import { STORAGE_KEYS } from './utils/storageConfig.js';
 
-let rowNumber = 1;
-let elements = [];
-let listElement = "";
+const addButton = document.getElementById(IDS.ADD_BUTTON);
+const clearButton = document.getElementById(IDS.CLEAR_BUTTON);
+const inputField = document.getElementById(IDS.INPUT);
+const toDoList = document.getElementById(IDS.TO_DO_LIST);
 
-addButton.addEventListener('click', function (event) {
+let numberOfRows = 0;
+
+const createNewRow = event => {
   event.preventDefault();
-  elements = [];
+  const inputText = inputField.value;
 
-  listElement = inputField.value;
-
-  if (listElement.match(/^[0-9a-zA-ZáéőúűóöüíÉÁŐÚŰÓÜÖÍ" ",.-]{1,25}$/)) {
-
-    render(rowNumber - 1);
-    saveLocalStorage();
-
+  if (!validateInput(inputText)) {
+    return;
   }
-  else {
-    alert("illegális karakter");
+
+  const highestId = findHighestId(getLocalStorage(STORAGE_KEYS.TO_DO_LIST) || []);
+  const rowData = new RowData({ id: highestId + 1, label: inputText });
+  
+  renderRow(rowData);
+  saveRow(rowData);
+  inputField.value = '';
+};
+
+const clearList = () => {
+  toDoList.innerHTML = '';
+  removeFromLocalStorage(STORAGE_KEYS.TO_DO_LIST);
+  numberOfRows = 0;
+};
+
+const handleCheckbox = rowId => event => {
+  const isDone = event.target.checked;
+
+  event.target.parentNode.classList.toggle(CLASSES.DONE);
+
+  const toDoList = getLocalStorage(STORAGE_KEYS.TO_DO_LIST) || [];
+  const savedRow = toDoList.find(item => item.id === rowId);
+  if (savedRow) {
+    savedRow.isDone = isDone;
   }
-})
+  setLocalStorage(STORAGE_KEYS.TO_DO_LIST, toDoList);
+};
 
-clearButton.addEventListener('click', function () {
-  toDoList.innerHTML = "";
-  rowNumber = 1;
-  localStorage.clear();
-  toDoItems = [];
-
-})
-
-const setCheckbox = (i) => (event) => {
-  const isChecked = event.target.checked;
-
-  event.target.parentNode.classList.toggle("done");
-
-  const toDoList = JSON.parse(localStorage.getItem('myToDoList')) || [];
-
-  if (toDoList.length > i) {
-    toDoList[i].isChecked = isChecked;
-    localStorage.setItem('myToDoList', JSON.stringify(toDoList));
-  }
-}
-
-function render(i, savedList=null) {
-  const row = document.createElement('p');
-  row.classList.add('row');
+const renderRow = rowData => {
+  const row = document.createElement(ELEMENTS.P);
+  row.classList.add(CLASSES.ROW);
   row.innerHTML = `
-    <span>${rowNumber}. </span> 
-    <span class="list-element" >${savedList?.label || listElement}</span>
+    <span>${numberOfRows + 1}.</span> 
+    <span class="${CLASSES.LIST_ELEMENT}">${rowData.label}</span>
   `;
-  if (savedList?.isChecked) {
-    row.classList.add('done');
+  if (rowData.isDone) {
+    row.classList.add(CLASSES.DONE);
   }
 
-  const checkbox = document.createElement('input');
-  checkbox.setAttribute('type', 'checkbox');
-  checkbox.setAttribute('name', 'finished');
-  checkbox.setAttribute('meta-index', i);
-  checkbox.classList.add('finished-checkbox');
-  checkbox.checked = savedList?.isChecked || false;
-  checkbox.onclick = setCheckbox(i);
+  const checkbox = document.createElement(ELEMENTS.INPUT);
+  checkbox.setAttribute(ATTRIBUTES.TYPE, STRINGS.CHECKBOX);
+  checkbox.setAttribute(ATTRIBUTES.NAME, STRINGS.FINISHED);
+  checkbox.classList.add(CLASSES.FINISHED_CHECKBOX);
+  checkbox.checked = rowData.isDone;
+  checkbox.onclick = handleCheckbox(rowData.id);
 
   row.appendChild(checkbox);
   toDoList.appendChild(row);
-
-  inputField.value = "";
-  rowNumber++;
+  
+  numberOfRows++;
 };
 
-function saveLocalStorage() {
-  const rowList = document.querySelectorAll(".row");
-
-  for (const row of rowList) {
-    const valueContainer = row.querySelector('.list-element');
-    const checkbox = row.querySelector('.finished-checkbox');
-
-    const elementValue = {
-      label: valueContainer.innerText,
-      isChecked: checkbox.checked,
-    };
-
-    elements.push(elementValue);
-    localStorage.setItem('myToDoList', JSON.stringify(elements));
-  }
+const saveRow = newRow => {
+  const rowList = getLocalStorage(STORAGE_KEYS.TO_DO_LIST) || [];
+  rowList.push(newRow);
+  setLocalStorage(STORAGE_KEYS.TO_DO_LIST, rowList);
 };
 
-function loadMyToDoList() {
-  const savedList = JSON.parse(localStorage.getItem('myToDoList')) || [];
-
-  for (let i = 0; i < savedList.length; i++) {
-    listElement = savedList[i];
-    render(i, savedList[i]);
-  }
+const loadToDoList = () => {
+  const savedRowList = getLocalStorage(STORAGE_KEYS.TO_DO_LIST) || [];
+  savedRowList.forEach(row => renderRow(row));
 }
 
-loadMyToDoList();
+addButton.addEventListener(EVENTS.CLICK, createNewRow);
+clearButton.addEventListener(EVENTS.CLICK, clearList);
+
+loadToDoList();
